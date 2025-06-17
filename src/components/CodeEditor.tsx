@@ -19,7 +19,26 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const editorInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !editorInstance.current) {
+      // Configure Monaco Editor worker
+      self.MonacoEnvironment = {
+        getWorkerUrl: function (moduleId, label) {
+          if (label === 'json') {
+            return './monaco-editor/esm/vs/language/json/json.worker.js';
+          }
+          if (label === 'css' || label === 'scss' || label === 'less') {
+            return './monaco-editor/esm/vs/language/css/css.worker.js';
+          }
+          if (label === 'html' || label === 'handlebars' || label === 'razor') {
+            return './monaco-editor/esm/vs/language/html/html.worker.js';
+          }
+          if (label === 'typescript' || label === 'javascript') {
+            return './monaco-editor/esm/vs/language/typescript/ts.worker.js';
+          }
+          return './monaco-editor/esm/vs/editor/editor.worker.js';
+        }
+      };
+
       editorInstance.current = monaco.editor.create(editorRef.current, {
         value,
         language,
@@ -40,6 +59,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     return () => {
       if (editorInstance.current) {
         editorInstance.current.dispose();
+        editorInstance.current = null;
       }
     };
   }, []);
