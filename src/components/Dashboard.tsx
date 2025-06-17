@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import AuthForm from './AuthForm';
 import LearningGoalSetup from './LearningGoalSetup';
 import LessonView from './LessonView';
 
