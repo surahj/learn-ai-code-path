@@ -1,29 +1,49 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AuthFormProps {
-  onAuth: (userData: { name: string; email: string }) => void;
+  onAuthSuccess: (userData: { name: string; email: string }) => void;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
+const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, isLogin: boolean) => {
     e.preventDefault();
-    // Simulate authentication
-    onAuth({ name: 'John Doe', email: loginData.email });
+    
+    if (isLogin) {
+      // Simple login simulation
+      if (formData.email && formData.password) {
+        onAuthSuccess({
+          name: formData.name || 'JavaScript Learner',
+          email: formData.email
+        });
+      }
+    } else {
+      // Simple registration simulation
+      if (formData.name && formData.email && formData.password) {
+        onAuthSuccess({
+          name: formData.name,
+          email: formData.email
+        });
+      }
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulate registration
-    onAuth({ name: registerData.name, email: registerData.email });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
   return (
@@ -34,7 +54,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
             JavaScript Mentor
           </CardTitle>
           <CardDescription>
-            Your personalized AI-powered JavaScript learning journey
+            Your personalized JavaScript learning journey starts here
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -45,14 +65,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
             </TabsList>
             
             <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
                     id="login-email"
+                    name="email"
                     type="email"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -60,27 +81,28 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
                   <Label htmlFor="login-password">Password</Label>
                   <Input
                     id="login-password"
+                    name="password"
                     type="password"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Button type="submit" className="w-full">
                   Login
                 </Button>
               </form>
             </TabsContent>
             
             <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
+              <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Name</Label>
                   <Input
                     id="register-name"
-                    type="text"
-                    value={registerData.name}
-                    onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -88,9 +110,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
                   <Label htmlFor="register-email">Email</Label>
                   <Input
                     id="register-email"
+                    name="email"
                     type="email"
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    value={formData.email}
+                    onChange={handleChange}
                     required
                   />
                 </div>
@@ -98,13 +121,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuth }) => {
                   <Label htmlFor="register-password">Password</Label>
                   <Input
                     id="register-password"
+                    name="password"
                     type="password"
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                <Button type="submit" className="w-full">
                   Register
                 </Button>
               </form>
