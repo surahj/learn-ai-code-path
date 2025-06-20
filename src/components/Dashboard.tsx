@@ -1,8 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import AuthForm from './AuthForm';
 import LearningGoalSetup from './LearningGoalSetup';
 import LessonView from './LessonView';
+import { useAuth } from '../contexts/AuthContext';
+import './Dashboard.css';
+import axios from 'axios';
 
 interface LearningGoal {
   goal: string;
@@ -117,6 +119,9 @@ const generateCurriculum = (goal: LearningGoal): Lesson[] => {
 };
 
 const Dashboard: React.FC = () => {
+  // Get auth context
+  const { currentUser, token, logout } = useAuth();
+  
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [learningGoal, setLearningGoal] = useState<LearningGoal | null>(null);
   const [curriculum, setCurriculum] = useState<Lesson[]>([]);
@@ -140,18 +145,66 @@ const Dashboard: React.FC = () => {
     localStorage.setItem('jsmentor_user', JSON.stringify(userData));
   };
 
-  const handleGoalSet = (goal: LearningGoal) => {
+  const handleGoalSet = async (goal: LearningGoal) => {
     setLearningGoal(goal);
     const newCurriculum = generateCurriculum(goal);
     setCurriculum(newCurriculum);
+    
+    // Add API call here to save goal to backend
+    try {
+      if (token) { // Get token from useAuth()
+        await axios.post('https://ai-mentor-backend-w5gs.onrender.com/goals', 
+          { 
+            learning_goal: goal.goal,
+            daily_commitment: parseInt(goal.timePerDay),
+            duration: parseInt(goal.duration)
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        console.log('Goal saved to backend');
+      }
+    } catch (error) {
+      console.error('Failed to save goal to backend:', error);
+      // Continue with local storage anyway as fallback
+    }
+    
+    // Keep your existing localStorage code
     localStorage.setItem('jsmentor_goal', JSON.stringify(goal));
     localStorage.setItem('jsmentor_curriculum', JSON.stringify(newCurriculum));
   };
 
-  const handleLessonComplete = () => {
+  const handleLessonComplete = async () => {
     const updatedCurriculum = [...curriculum];
     updatedCurriculum[currentLessonIndex].completed = true;
     setCurriculum(updatedCurriculum);
+    
+    // Add API call here to track lesson completion
+    try {
+      if (token) { // Get token from useAuth()
+        await axios.post('https://ai-mentor-backend-w5gs.onrender.com/progress', 
+          { 
+            lesson_id: curriculum[currentLessonIndex].id,
+            completed: true,
+            timestamp: new Date().toISOString()
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        console.log('Progress saved to backend');
+      }
+    } catch (error) {
+      console.error('Failed to save progress to backend:', error);
+      // Continue with local storage anyway as fallback
+    }
+    
+    // Keep your existing localStorage code
     localStorage.setItem('jsmentor_curriculum', JSON.stringify(updatedCurriculum));
     
     if (currentLessonIndex < curriculum.length - 1) {
@@ -161,6 +214,16 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    // Clear other localStorage items if needed
+    localStorage.removeItem('jsmentor_user');
+    localStorage.removeItem('jsmentor_goal');
+    localStorage.removeItem('jsmentor_curriculum');
+    localStorage.removeItem('jsmentor_progress');
+    setUser(null);
+  };
+  
   const completedLessons = curriculum.filter(lesson => lesson.completed).length;
 
   // Show auth form if no user
@@ -187,12 +250,18 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <LessonView
-      lesson={currentLesson}
-      totalLessons={curriculum.length}
-      completedLessons={completedLessons}
-      onLessonComplete={handleLessonComplete}
-    />
+    <>
+      <div className="user-controls">
+        <span>Welcome, {currentUser?.name || `User ${currentUser?.id}`}</span>
+        <button onClick={handleLogout} className="logout-button">Log Out</button>
+      </div>
+      <LessonView
+        lesson={currentLesson}
+        totalLessons={curriculum.length}
+        completedLessons={completedLessons}
+        onLessonComplete={handleLessonComplete}
+      />
+    </>
   );
 };
 
