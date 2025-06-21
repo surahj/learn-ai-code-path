@@ -35,6 +35,7 @@ interface FormData {
   last_name: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
 interface FormErrors {
@@ -42,6 +43,7 @@ interface FormErrors {
   last_name?: string;
   email?: string;
   password?: string;
+  confirmPassword?: string;
 }
 
 const Signup: React.FC = () => {
@@ -50,6 +52,7 @@ const Signup: React.FC = () => {
     last_name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,8 +95,12 @@ const Signup: React.FC = () => {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -239,14 +246,38 @@ const Signup: React.FC = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Create a password (min 8 characters)"
+                    placeholder="Create a password (min 6 characters)"
                     className={`pl-10 ${
                       errors.password ? "border-red-500" : ""
                     }`}
                   />
+                  {errors.password && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 
