@@ -2,7 +2,9 @@
 import axios, { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || "https://ai-mentor-backend-w5gs.onrender.com";
+const API_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://ai-mentor-backend-w5gs.onrender.com";
 
 interface DecodedToken {
   exp: number;
@@ -56,7 +58,7 @@ const authAPI = {
   ): Promise<{ token: string; user: Record<string, unknown> }> => {
     try {
       const response = await axios.post<SuccessResponse>(
-        `${API_URL}/register`,
+        `${API_URL}/signup`,
         userData
       );
       console.log("Signup response:", response.data);
