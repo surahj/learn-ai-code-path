@@ -2,14 +2,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './components/auth/Login';
-import Signup from './components/auth/Signup';
-import Dashboard from './components/Dashboard';
-import './App.css';
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Login from "./components/auth/Login";
+import Signup from "./components/auth/Signup";
+import Dashboard from "./components/Dashboard";
+import WeeklyContentPage from "./pages/WeeklyContent";
+import DailyContentPage from "./pages/DailyContent";
+import "./App.css";
+import "./styles/components.css";
 
 const queryClient = new QueryClient();
 
@@ -20,15 +28,22 @@ interface ProtectedRouteProps {
 // Protected route component
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { currentUser, loading } = useAuth();
-  
+
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
   }
-  
+
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -40,17 +55,33 @@ const App = () => (
       <Router>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route path="/" element={<Navigate to="/login" />} />
+            <Route
+              path="/dashboard/week/:planId/:weekNumber"
+              element={
+                <ProtectedRoute>
+                  <WeeklyContentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/daily/:planId/:weekNumber/:dayNumber"
+              element={
+                <ProtectedRoute>
+                  <DailyContentPage />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

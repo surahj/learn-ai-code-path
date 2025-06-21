@@ -1,12 +1,29 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import authAPI from '../api/auth';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import authAPI from "../api/auth";
 
 interface User {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  [key: string]: any;
+  daily_commitment?: number;
+  learning_goal?: string;
+  [key: string]: unknown;
+}
+
+interface CreateUserRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  daily_commitment: number;
+  learning_goal: string;
+}
+
+interface LoginRequest {
+  email: string;
+  password: string;
 }
 
 interface AuthContextType {
@@ -14,8 +31,8 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   error: string | null;
-  signup: (userData: { name: string; email: string; password: string }) => Promise<any>;
-  login: (credentials: { email: string; password: string }) => Promise<any>;
+  signup: (userData: CreateUserRequest) => Promise<unknown>;
+  login: (credentials: LoginRequest) => Promise<unknown>;
   logout: () => void;
 }
 
@@ -27,7 +44,9 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,11 +57,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           // Try to get user info from the token directly
           const userData = await authAPI.getProfile(token);
-          setCurrentUser(userData);
+          setCurrentUser(userData as User);
         } catch (err) {
-          console.warn('Could not get user profile, using default user');
+          console.warn("Could not get user profile, using default user");
           // Create a minimal user object so the app can function
-          setCurrentUser({ id: 0, name: 'User', email: '' });
+          setCurrentUser({
+            id: 0,
+            first_name: "User",
+            last_name: "",
+            email: "",
+            daily_commitment: 30,
+            learning_goal: "",
+          });
         } finally {
           setLoading(false);
         }
@@ -54,36 +80,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loadUser();
   }, [token]);
 
-  const signup = async (userData: { name: string; email: string; password: string }) => {
+  const signup = async (userData: CreateUserRequest) => {
     setError(null);
     try {
       const response = await authAPI.signup(userData);
       setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setCurrentUser(response.user);
+      localStorage.setItem("token", response.token);
+      setCurrentUser(response.user as User);
       return response;
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to sign up");
       throw err;
     }
   };
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (credentials: LoginRequest) => {
     setError(null);
     try {
       const response = await authAPI.login(credentials);
       setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setCurrentUser(response.user);
+      localStorage.setItem("token", response.token);
+      setCurrentUser(response.user as User);
       return response;
-    } catch (err: any) {
-      setError(err.message || 'Failed to log in');
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to log in");
       throw err;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setToken(null);
     setCurrentUser(null);
   };
@@ -104,7 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
