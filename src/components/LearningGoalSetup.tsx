@@ -7,17 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import learningAPI from "../api/learning";
+import { Plus, Minus } from "lucide-react";
 
 interface LearningGoal {
   goal: string;
@@ -37,12 +31,94 @@ const LearningGoalSetup: React.FC<LearningGoalSetupProps> = ({
   onBack,
 }) => {
   const [goal, setGoal] = useState("");
-  const [timePerDay, setTimePerDay] = useState("");
-  const [duration, setDuration] = useState("");
+  const [timePerDay, setTimePerDay] = useState("60");
+  const [duration, setDuration] = useState("4");
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { token } = useAuth();
+
+  // Helper functions to format time and duration
+  const formatCommitment = (minutes: number): string => {
+    if (minutes < 60) {
+      return `${minutes} minutes`;
+    } else if (minutes === 60) {
+      return "1 hour";
+    } else {
+      const hours = minutes / 60;
+      if (hours === Math.floor(hours)) {
+        return `${hours} hours`;
+      } else {
+        return `${hours} hours`;
+      }
+    }
+  };
+
+  const formatDuration = (weeks: number): string => {
+    if (weeks < 4) {
+      return `${weeks} week${weeks > 1 ? "s" : ""}`;
+    } else if (weeks === 4) {
+      return "1 month";
+    } else if (weeks < 48) {
+      const months = Math.floor(weeks / 4);
+      const remainingWeeks = weeks % 4;
+      if (remainingWeeks === 0) {
+        return `${months} month${months > 1 ? "s" : ""}`;
+      } else {
+        return `${months} month${months > 1 ? "s" : ""} ${remainingWeeks} week${
+          remainingWeeks > 1 ? "s" : ""
+        }`;
+      }
+    } else {
+      const years = Math.floor(weeks / 48);
+      const remainingMonths = Math.floor((weeks % 48) / 4);
+      if (remainingMonths === 0) {
+        return `${years} year${years > 1 ? "s" : ""}`;
+      } else {
+        return `${years} year${years > 1 ? "s" : ""} ${remainingMonths} month${
+          remainingMonths > 1 ? "s" : ""
+        }`;
+      }
+    }
+  };
+
+  const handleCommitmentChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (numValue >= 15 && numValue <= 1200) {
+      setTimePerDay(value);
+    }
+  };
+
+  const handleDurationChange = (value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (numValue >= 1 && numValue <= 52) {
+      setDuration(value);
+    }
+  };
+
+  const incrementCommitment = () => {
+    const current = parseInt(timePerDay) || 60;
+    const newValue = Math.min(current + 15, 1200);
+    setTimePerDay(newValue.toString());
+  };
+
+  const decrementCommitment = () => {
+    const current = parseInt(timePerDay) || 60;
+    const newValue = Math.max(current - 15, 15);
+    setTimePerDay(newValue.toString());
+  };
+
+  const incrementDuration = () => {
+    const current = parseInt(duration) || 4;
+    const newValue = Math.min(current + 1, 52);
+    setDuration(newValue.toString());
+  };
+
+  const decrementDuration = () => {
+    const current = parseInt(duration) || 4;
+    const newValue = Math.max(current - 1, 1);
+    setDuration(newValue.toString());
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,48 +187,86 @@ const LearningGoalSetup: React.FC<LearningGoalSetupProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="time">How much time can you commit daily?</Label>
-              <Select onValueChange={setTimePerDay} value={timePerDay}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select daily time commitment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
-                  <SelectItem value="120">120 minutes</SelectItem>
-                  <SelectItem value="150">150 minutes</SelectItem>
-                  <SelectItem value="180">180 minutes</SelectItem>
-                  <SelectItem value="210">210 minutes</SelectItem>
-                  <SelectItem value="240">240 minutes</SelectItem>
-                  <SelectItem value="270">270 minutes</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={decrementCommitment}
+                  className="flex-shrink-0"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="flex-1">
+                  <Input
+                    id="time"
+                    type="number"
+                    min="15"
+                    max="1200"
+                    step="15"
+                    value={timePerDay}
+                    onChange={(e) => handleCommitmentChange(e.target.value)}
+                    className="text-center"
+                  />
+                  <p className="text-sm text-gray-500 mt-1 text-center">
+                    {formatCommitment(parseInt(timePerDay) || 60)}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={incrementCommitment}
+                  className="flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400 text-center">
+                Range: 15 minutes to 20 hours (in 15-minute increments)
+              </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="duration">How long do you want to study?</Label>
-              <Select onValueChange={setDuration} value={duration}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 week</SelectItem>
-                  <SelectItem value="2">2 weeks</SelectItem>
-                  <SelectItem value="3">3 weeks</SelectItem>
-                  <SelectItem value="4">4 weeks</SelectItem>
-                  <SelectItem value="6">6 weeks</SelectItem>
-                  <SelectItem value="8">8 weeks</SelectItem>
-                  <SelectItem value="12">12 weeks</SelectItem>
-                  <SelectItem value="16">16 weeks</SelectItem>
-                  <SelectItem value="20">20 weeks</SelectItem>
-                  <SelectItem value="24">24 weeks</SelectItem>
-                  <SelectItem value="28">28 weeks</SelectItem>
-                  <SelectItem value="32">32 weeks</SelectItem>
-                  <SelectItem value="36">36 weeks</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={decrementDuration}
+                  className="flex-shrink-0"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="flex-1">
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="1"
+                    max="52"
+                    step="1"
+                    value={duration}
+                    onChange={(e) => handleDurationChange(e.target.value)}
+                    className="text-center"
+                  />
+                  <p className="text-sm text-gray-500 mt-1 text-center">
+                    {formatDuration(parseInt(duration) || 4)}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={incrementDuration}
+                  className="flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400 text-center">
+                Range: 1 week to 1 year (in weekly increments)
+              </p>
             </div>
 
             <Button
