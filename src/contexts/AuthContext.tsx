@@ -2,13 +2,11 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import authAPI from "../api/auth";
 
-interface User {
+export interface User {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
-  daily_commitment?: number;
-  learning_goal?: string;
   [key: string]: unknown;
 }
 
@@ -21,6 +19,11 @@ interface CreateUserRequest {
   learning_goal: string;
 }
 
+interface VerifyOTPRequest {
+  email: string;
+  otp: string;
+}
+
 interface LoginRequest {
   email: string;
   password: string;
@@ -31,7 +34,21 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   error: string | null;
-  signup: (userData: CreateUserRequest) => Promise<unknown>;
+  setCurrentUser: (user: User | null) => void;
+  signup: (userData: CreateUserRequest) => Promise<{ message: string }>;
+  verifyOtp: (
+    otpData: VerifyOTPRequest
+  ) => Promise<{ token: string; user: Record<string, unknown> }>;
+  resendOtp: (email: string) => Promise<{ message: string }>;
+  forgotPassword: (email: string) => Promise<{ message: string }>;
+  resetPassword: (resetData: {
+    email: string;
+    otp: string;
+    password: string;
+  }) => Promise<{ message: string }>;
+  googleLogin: (
+    token: string
+  ) => Promise<{ token: string; user: Record<string, unknown> }>;
   login: (credentials: LoginRequest) => Promise<unknown>;
   logout: () => void;
 }
@@ -66,8 +83,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             first_name: "User",
             last_name: "",
             email: "",
-            daily_commitment: 30,
-            learning_goal: "",
           });
         } finally {
           setLoading(false);
@@ -83,14 +98,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (userData: CreateUserRequest) => {
     setError(null);
     try {
+      // Signup now just returns a message, no token
       const response = await authAPI.signup(userData);
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to sign up");
+      throw err;
+    }
+  };
+
+  const verifyOtp = async (otpData: VerifyOTPRequest) => {
+    setError(null);
+    try {
+      const response = await authAPI.verifyOtp(otpData);
       setToken(response.token);
       localStorage.setItem("token", response.token);
       setCurrentUser(response.user as User);
       return response;
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || "Failed to sign up");
+      setError(error.message || "Failed to verify OTP");
+      throw err;
+    }
+  };
+
+  const resendOtp = async (email: string) => {
+    setError(null);
+    try {
+      const response = await authAPI.resendOtp(email);
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to resend OTP");
+      throw err;
+    }
+  };
+
+  const forgotPassword = async (email: string) => {
+    setError(null);
+    try {
+      const response = await authAPI.forgotPassword(email);
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to send password reset email");
+      throw err;
+    }
+  };
+
+  const resetPassword = async (resetData: {
+    email: string;
+    otp: string;
+    password: string;
+  }) => {
+    setError(null);
+    try {
+      const response = await authAPI.resetPassword(resetData);
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to reset password");
+      throw err;
+    }
+  };
+
+  const googleLogin = async (token: string) => {
+    setError(null);
+    try {
+      const response = await authAPI.googleLogin(token);
+      setToken(response.token);
+      localStorage.setItem("token", response.token);
+      setCurrentUser(response.user as User);
+      return response;
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to login with Google");
       throw err;
     }
   };
@@ -122,8 +205,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     error,
     signup,
+    verifyOtp,
+    resendOtp,
+    forgotPassword,
+    resetPassword,
     login,
     logout,
+    googleLogin,
+    setCurrentUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

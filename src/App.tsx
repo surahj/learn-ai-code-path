@@ -13,9 +13,11 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
+import ForgotPassword from "./components/auth/ForgotPassword";
 import Dashboard from "./components/Dashboard";
 import WeeklyContentPage from "./pages/WeeklyContent";
 import DailyContentPage from "./pages/DailyContent";
+import Profile from "./pages/Profile";
 import "./App.css";
 import "./styles/components.css";
 
@@ -58,6 +60,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route
               path="/dashboard"
               element={
@@ -79,6 +82,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DailyContentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

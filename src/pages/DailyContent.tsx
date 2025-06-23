@@ -109,11 +109,11 @@ const DailyContentPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="user-controls">
-          <span>{currentUser?.first_name}</span>
-          <button onClick={handleLogout} className="logout-button">
+        <div className="user-controls flex justify-between items-center p-4">
+          <span className="text-lg font-medium">{currentUser?.first_name}</span>
+          <Button variant="ghost" onClick={handleLogout}>
             Log Out
-          </button>
+          </Button>
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mr-3"></div>
@@ -126,17 +126,17 @@ const DailyContentPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="user-controls">
-          <span>{currentUser?.first_name}</span>
-          <button onClick={handleLogout} className="logout-button">
+        <div className="user-controls flex justify-between items-center p-4">
+          <span className="text-lg font-medium">{currentUser?.first_name}</span>
+          <Button variant="ghost" onClick={handleLogout}>
             Log Out
-          </button>
+          </Button>
         </div>
         <div className="max-w-4xl mx-auto p-6">
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Button variant="outline" onClick={handleBackToWeek}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Week
@@ -153,17 +153,17 @@ const DailyContentPage: React.FC = () => {
   if (!dailyContent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="user-controls">
-          <span>{currentUser?.first_name}</span>
-          <button onClick={handleLogout} className="logout-button">
+        <div className="user-controls flex justify-between items-center p-4">
+          <span className="text-lg font-medium">{currentUser?.first_name}</span>
+          <Button variant="ghost" onClick={handleLogout}>
             Log Out
-          </button>
+          </Button>
         </div>
         <div className="max-w-4xl mx-auto p-6">
           <Alert className="mb-6">
             <AlertDescription>No daily content found.</AlertDescription>
           </Alert>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Button variant="outline" onClick={handleBackToWeek}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Week
@@ -187,16 +187,16 @@ const DailyContentPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="user-controls">
-        <span>{currentUser?.first_name}</span>
-        <button onClick={handleLogout} className="logout-button">
+      <div className="user-controls flex justify-between items-center p-4">
+        <span className="text-lg font-medium">{currentUser?.first_name}</span>
+        <Button variant="ghost" onClick={handleLogout}>
           Log Out
-        </button>
+        </Button>
       </div>
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-wrap gap-4 mb-4">
             <Button variant="outline" onClick={handleBackToWeek}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Week {weekNumber}
@@ -332,31 +332,25 @@ const DailyContentPage: React.FC = () => {
             </Card>
           )}
 
-          {/* Navigation */}
-          <Card className="shadow-md">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleBackToWeek}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Week
-                </Button>
-                <Button
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    // TODO: Mark day as complete
-                    handleBackToWeek();
-                  }}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Mark Day Complete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Completion Actions */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap justify-between items-center gap-4">
+              <Button variant="outline" onClick={handleBackToWeek}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Week
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  // TODO: Mark day as complete
+                  handleBackToWeek();
+                }}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark Day Complete
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
